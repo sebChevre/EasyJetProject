@@ -33,7 +33,9 @@ public class JsonImport {
 
 
             StringBuilder cypherQuery = generateInsertCities(airports).append(generateRelationQueries(airports));
+            cypherQuery = cypherQuery.deleteCharAt(cypherQuery.length()-1);
 
+            writeCypherScriptFile(cypherQuery,"1.2");
 
             System.out.println(cypherQuery.toString());
         } catch (IOException e) {
@@ -56,6 +58,7 @@ public class JsonImport {
     static StringBuilder generateRelationQueries(Airport[] aeroports){
         StringBuilder query = new StringBuilder("");
 
+        query.append("//ajout des relations \n");
         for(Airport aeroport:aeroports){
 
             for(String airportRelationCode:aeroport.dests){
@@ -64,11 +67,13 @@ public class JsonImport {
 
         }
 
+        query.setLength(query.length()-1);
         return query;
     }
 
     static StringBuilder generateInsertCities(Airport[] aeroports){
-        StringBuilder query = new StringBuilder("CREATE ");
+
+        StringBuilder query = new StringBuilder("//Ajout des aéroports \n CREATE ");
 
         for(Airport aeroport:aeroports){
 
@@ -78,6 +83,17 @@ public class JsonImport {
         }
 
         return query;
+    }
+
+    static void writeCypherScriptFile(StringBuilder query, String graphVersion){
+        Path path = FileSystems.getDefault().getPath("ress/graph_create_"+graphVersion+".txt");
+
+        try {
+            Files.write(path, query.toString().getBytes());
+            System.out.println( );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void displayCurrentDirectory(){
