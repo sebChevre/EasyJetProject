@@ -1,5 +1,7 @@
 package data;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Arrays;
 
 /**
@@ -9,6 +11,9 @@ public class Airport {
 
     String code;
     String name;
+    Double lat;
+    @SerializedName("long")
+    Double longitude;
 
     @Override
     public String toString() {

@@ -31,11 +31,12 @@ public class JsonImport {
             Gson gson = new Gson();
             Airport[] airports = gson.fromJson(jsonAsText,Airport[].class);
 
+            Map<String,Airport> easyJetAirports = convertToMap(airports);
 
-            StringBuilder cypherQuery = generateInsertCities(airports).append(generateRelationQueries(airports));
+            StringBuilder cypherQuery = generateInsertCities(airports).append(generateRelationQueries(easyJetAirports));
             cypherQuery = cypherQuery.deleteCharAt(cypherQuery.length()-1);
 
-            writeCypherScriptFile(cypherQuery,"1.2");
+            writeCypherScriptFile(cypherQuery,"1.3");
 
             System.out.println(cypherQuery.toString());
         } catch (IOException e) {
@@ -55,14 +56,19 @@ public class JsonImport {
     }
 
 
-    static StringBuilder generateRelationQueries(Airport[] aeroports){
+    static StringBuilder generateRelationQueries(Map<String,Airport> aeroports){
         StringBuilder query = new StringBuilder("");
 
         query.append("//ajout des relations \n");
-        for(Airport aeroport:aeroports){
+        for(String code:aeroports.keySet()){
+
+            Airport aeroport = aeroports.get(code);
 
             for(String airportRelationCode:aeroport.dests){
-                query.append("("+aeroport.code+")-[:DESSERT ]->("+airportRelationCode+"),\n");
+                Airport destination = aeroports.get(airportRelationCode);
+
+                double distance = new DistanceCalculator(aeroport.lat,aeroport.longitude,destination.lat,destination.longitude).distance();
+                query.append("("+aeroport.code+")-[:DESSERT {distance:"+distance+"}]->("+airportRelationCode+"),\n");
             }
 
         }
